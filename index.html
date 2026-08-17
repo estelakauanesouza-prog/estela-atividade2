@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Blog Neon Futurista</title>
+  <style>
+    /* RESET E VARIÁVEIS DE ESTILO NEON */
+    :root {
+      --bg-color: #080810;
+      --card-bg: rgba(18, 22, 36, 0.65);
+      --card-border: rgba(0, 255, 204, 0.2);
+      --primary-neon: #00ffcc;
+      --secondary-neon: #00e5ff;
+      --text-color: #e0e6ed;
+      --text-dim: #8a99ad;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      min-height: 100vh;
+      position: relative;
+      overflow-x: hidden;
+    }
+
+    /* BARRA DE PROGRESSO DE LEITURA NEON */
+    #progress-bar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      height: 4px;
+      width: 0%;
+      background: linear-gradient(90deg, var(--primary-neon), var(--secondary-neon));
+      box-shadow: 0 0 10px var(--primary-neon), 0 0 20px var(--secondary-neon);
+      z-index: 9999;
+      transition: width 0.1s ease-out;
+    }
+
+    /* CANVAS DE PARTÍCULAS EM SEGUNDO PLANO */
+    #particles-canvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 1;
+      pointer-events: none;
+    }
+
+    /* CONTAINER PRINCIPAL DO CONTEÚDO */
+    .container {
+      position: relative;
+      z-index: 2;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 40px 20px;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 50px;
+    }
+
+    header h1 {
+      font-size: 2.8rem;
+      color: var(--primary-neon);
+      text-shadow: 0 0 10px rgba(0, 255, 204, 0.5);
+      margin-bottom: 10px;
+    }
+
+    header p {
+      color: var(--text-dim);
+    }
+
+    /* CARDS TRANSPARENTES COM EFEITO FROSTED GLASS */
+    .post-card {
+      background: var(--card-bg);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      padding: 30px;
+      margin-bottom: 30px;
+      box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+      transition: border-color 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .post-card:hover {
+      border-color: var(--secondary-neon);
+      box-shadow: 0 0 15px rgba(0, 229, 255, 0.3);
+    }
+
+    .post-card h2 {
+      color: var(--secondary-neon);
+      margin-bottom: 15px;
+    }
+
+    .post-card p {
+      line-height: 1.6;
+      color: var(--text-color);
+      margin-bottom: 20px;
+    }
+
+    /* CONTADOR DE LIKES FUNCIONAL */
+    .like-section {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .like-btn {
+      background: transparent;
+      border: 1px solid var(--primary-neon);
+      color: var(--primary-neon);
+      padding: 8px 16px;
+      border-radius: 20px;
+      cursor: pointer;
+      font-weight: bold;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.3s ease;
+    }
+
+    .like-btn:hover {
+      background: var(--primary-neon);
+      color: #000;
+      box-shadow: 0 0 12px var(--primary-neon);
+    }
+
+    .like-btn.liked {
+      background: var(--primary-neon);
+      color: #000;
+      box-shadow: 0 0 15px var(--primary-neon);
+    }
+
+    .like-count {
+      color: var(--text-dim);
+      font-size: 0.9rem;
+    }
+
+    /* BOTÃO FLUTUANTE VOLTAR AO TOPO */
+    #back-to-top {
+      position: fixed;
+      bottom: 30px;
+      right: 30px;
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      background: var(--card-bg);
+      border: 1px solid var(--secondary-neon);
+      color: var(--secondary-neon);
+      font-size: 1.2rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.3s ease;
+      box-shadow: 0 0 10px rgba(0, 229, 255, 0.2);
+    }
+
+    #back-to-top.visible {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    #back-to-top:hover {
+      background: var(--secondary-neon);
+      color: #000;
+      box-shadow: 0 0 20px var(--secondary-neon);
+      transform: translateY(-3px);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Barra de Progresso Neon -->
+  <div id="progress-bar"></div>
+
+  <!-- Canvas de Partículas Interativas -->
+  <canvas id="particles-canvas"></canvas>
+
+  <!-- Conteúdo do Blog -->
+  <div class="container">
+    <header>
+      <h1>Neon Pulse Blog</h1>
+      <p>Explorando a tecnologia com estilo futurista</p>
+    </header>
+
+    <main>
+      <article class="post-card" data-post-id="post-1">
+        <h2>O Futuro da Interface Web com Canvas</h2>
+        <p>A criação de interfaces imersivas utiliza animações em tempo real para proporcionar experiências interativas únicas. O uso de fundos dinâmicos aliados a transparências permite dar vida à aplicação sem prejudicar a leitura do conteúdo principal.</p>
+        <div class="like-section">
+          <button class="like-btn">⚡ Curtir</button>
+          <span class="like-count"><span class="count-number">0</span> curtições</span>
+        </div>
+      </article>
+
+      <article class="post-card" data-post-id="post-2">
+        <h2>Persistência Local e Experiência do Usuário</h2>
+        <p>Armazenar o estado das interações diretamente no dispositivo do usuário garante que preferências e ações, como o registro de interações e curtidas, permaneçam ativas mesmo após atualizar ou fechar a página.</p>
+        <div class="like-section">
+          <button class="like-btn">⚡ Curtir</button>
+          <span class="like-count"><span class="count-number">0</span> curtições</span>
+        </div>
+      </article>
+
+      <article class="post-card" data-post-id="post-3">
+        <h2>Estética Cyberpunk e Design Responsivo</h2>
+        <p>A combinação de tons escuros profundos com contrastes neon em verde e ciano cria um visual marcante. O equilíbrio entre cores e desfoque garante legibilidade e alto apelo visual em diferentes resoluções.</p>
+        <div class="like-section">
+          <button class="like-btn">⚡ Curtir</button>
+          <span class="like-count"><span class="count-number">0</span> curtições</span>
+        </div>
+      </article>
+    </main>
+  </div>
+
+  <!-- Botão Flutuante Voltar ao Topo -->
+  <button id="back-to-top" aria-label="Voltar ao topo">▲</button>
+
+  <script>
+    /* 1. BARRA DE PROGRESSO DE LEITURA */
+    window.addEventListener('scroll', () => {
+      const scrollTop = window.scrollY;
+      const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+      const progress = (scrollTop / docHeight) * 100;
+      document.getElementById('progress-bar').style.width = progress + '%';
+    });
+
+    /* 2. BOTÃO VOLTAR AO TOPO */
+    const backToTopBtn = document.getElementById('back-to-top');
+
+    window.addEventListener('scroll', () => {
+      if (window.scrollY > 300) {
+        backToTopBtn.classList.add('visible');
+      } else {
+        backToTopBtn.classList.remove('visible');
+      }
+    });
+
+    backToTopBtn.addEventListener('click', () => {
+      window.scrollTo({
+        top: 0,
+        behavior: 'smooth'
+      });
+    });
+
+    /* 3. CONTADOR DE LIKES COM PERSISTÊNCIA (LOCALSTORAGE) */
+    document.querySelectorAll('.post-card').forEach(card => {
+      const postId = card.getAttribute('data-post-id');
+      const likeBtn = card.querySelector('.like-btn');
+      const countEl = card.querySelector('.count-number');
+
+      // Carregar dados armazenados
+      let count = parseInt(localStorage.getItem(`likes_${postId}`)) || 0;
+      let isLiked = localStorage.getItem(`isLiked_${postId}`) === 'true';
+
+      countEl.textContent = count;
+      if (isLiked) {
+        likeBtn.classList.add('liked');
+        likeBtn.innerHTML = '⚡ Curtido';
+      }
+
+      likeBtn.addEventListener('click', () => {
+        isLiked = !isLiked;
+        count = isLiked ? count + 1 : count - 1;
+
+        // Atualizar interface
+        countEl.textContent = count;
+        likeBtn.classList.toggle('liked', isLiked);
+        likeBtn.innerHTML = isLiked ? '⚡ Curtido' : '⚡ Curtir';
+
+        // Salvar estado no LocalStorage
+        localStorage.setItem(`likes_${postId}`, count);
+        localStorage.setItem(`isLiked_${postId}`, isLiked);
+      });
+    });
+
+    /* 4. CANVAS DE PARTÍCULAS INTERATIVAS */
+    const canvas = document.getElementById('particles-canvas');
+    const ctx = canvas.getContext('2d');
+
+    let particles = [];
+    const mouse = { x: null, y: null, radius: 120 };
+
+    function resizeCanvas() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+
+    window.addEventListener('mousemove', (e) => {
+      mouse.x = e.x;
+      mouse.y = e.y;
+    });
+
+    window.addEventListener('mouseleave', () => {
+      mouse.x = null;
+      mouse.y = null;
+    });
+
+    class Particle {
+      constructor() {
+        this.x = Math.random() * canvas.width;
+        this.y = Math.random() * canvas.height;
+        this.size = Math.random() * 2 + 1;
+        this.speedX = (Math.random() - 0.5) * 0.8;
+        this.speedY = (Math.random() - 0.5) * 0.8;
+        this.color = Math.random() > 0.5 ? '#00ffcc' : '#00e5ff';
+      }
+
+      update() {
+        this.x += this.speedX;
+        this.y += this.speedY;
+
+        if (this.x < 0 || this.x > canvas.width) this.speedX *= -1;
+        if (this.y < 0 || this.y > canvas.height) this.speedY *= -1;
+
+        // Interatividade com o ponteiro do mouse
+        if (mouse.x && mouse.y) {
+          const dx = mouse.x - this.x;
+          const dy = mouse.y - this.y;
+          const distance = Math.sqrt(dx * dx + dy * dy);
+
+          if (distance < mouse.radius) {
+            const angle = Math.atan2(dy, dx);
+            const force = (mouse.radius - distance) / mouse.radius;
+            this.x -= Math.cos(angle) * force * 3;
+            this.y -= Math.sin(angle) * force * 3;
+          }
+        }
+      }
+
+      draw() {
+        ctx.fillStyle = this.color;
+        ctx.shadowBlur = 8;
+        ctx.shadowColor = this.color;
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.shadowBlur = 0;
+      }
+    }
+
+    function initParticles() {
+      particles = [];
+      const numberOfParticles = Math.floor((canvas.width * canvas.height) / 10000);
+      for (let i = 0; i < numberOfParticles; i++) {
+        particles.push(new Particle());
+      }
+    }
+
+    function animateParticles() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      for (let i = 0; i < particles.length; i++) {
+        particles[i].update();
+        particles[i].draw();
+
+        // Linhas de conexão entre partículas próximas
+        for (let j = i + 1; j < particles.length; j++) {
+          const dx = particles[i].x - particles[j].x;
+          const dy = particles[i].y - particles[j].y;
+          const distance = Math.sqrt(dx * dx + dy * dy);
+
+          if (distance < 100) {
+            ctx.strokeStyle = particles[i].color;
+            ctx.globalAlpha = 1 - distance / 100;
+            ctx.lineWidth = 0.5;
+            ctx.beginPath();
+            ctx.moveTo(particles[i].x, particles[i].y);
+            ctx.lineTo(particles[j].x, particles[j].y);
+            ctx.stroke();
+            ctx.globalAlpha = 1;
+          }
+        }
+      }
+
+      requestAnimationFrame(animateParticles);
+    }
+
+    initParticles();
+    animateParticles();
+  </script>
+</body>
+</html>
